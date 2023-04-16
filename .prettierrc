@@ -1,0 +1,16 @@
+{
+	"tabWidth": 2,
+	"useTabs": true,
+	"singleQuote": true,
+	"semi": false,
+	"printWidth": 120,
+	"jsxSingleQuote": true,
+	"overrides": [
+		{
+			"files": "*.py",
+			"options": {
+				"tabWidth": 4
+			}
+		}
+	]
+}
