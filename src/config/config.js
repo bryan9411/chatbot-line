@@ -6,8 +6,8 @@ dotenv.config()
 // 配置參數
 const config = {
 	line: {
-		CHANNEL_ACCESS_TOKEN: process.env.CHANNEL_ACCESS_TOKEN,
-		CHANNEL_SECRET: process.env.CHANNEL_SECRET,
+		channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
+		channelSecret: process.env.CHANNEL_SECRET,
 	},
 	openai: {
 		OPENAI_API_KEY: process.env.OPENAI_API_KEY,

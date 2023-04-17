@@ -2,34 +2,44 @@ const line = require('@line/bot-sdk')
 const crypto = require('crypto')
 const config = require('../config')
 const { generateText } = require('./openai')
+const bodyParser = require('body-parser')
 
 // 初始化 line bot
 const client = new line.Client({
-	channelAccessToken: config.line.CHANNEL_ACCESS_TOKEN,
-	channelSecret: config.line.CHANNEL_SECRET,
+	channelAccessToken: config.line.channelAccessToken,
+	channelSecret: config.line.channelSecret,
+})
+
+// 解析请求正文
+const jsonParser = bodyParser.json({
+	verify(req, res, buf, encoding) {
+		if (!/application\/json/i.test(req.headers['content-type'])) {
+			throw new Error('Invalid content type. Expected application/json')
+		}
+	},
 })
 
 // 驗證 LINE Bot Webhook 簽名的密鑰
-// 這個函式將用於驗證經過 LINE Server 簽名的請求是否有效，驗證成功會返回 true，否則返回 false。
 function validateSignature(channelSecret, body, signature) {
 	const hmac = crypto.createHmac('sha256', channelSecret)
-	hmac.update(JSON.stringify(body))
+	hmac.update(body)
 	const calculatedSignature = hmac.digest('base64')
 	return calculatedSignature === signature
 }
 
 // 處理 LINE Bot Webhook 請求的函式
-// 這個函式將處理 LINE Server 發送的請求，讀取並解析請求體，並根據請求中包含的事件對其進行處理。
 async function handleLineWebhook(req, res) {
 	// 從請求頭中取得簽名，以驗證是否為 LINE Bot 發送的請求
 	const signature = req.headers['x-line-signature']
 
 	try {
-		// 解析 JSON 格式請求體
-		const body = req.body
+		// 解析請求體
+		await jsonParser(req, res, () => {})
 
-		// 驗證 HTTP 請求簽名是否有效，如果簽名驗證失敗，回傳 "401 Unauthorized" 状態碼。
-		const isValid = validateSignature(config.line.channelSecret, body, signature)
+		// 將请求正文转换为字符串或缓冲区，并验证签名
+		const body = req.body
+		const rawBody = JSON.stringify(body)
+		const isValid = validateSignature(config.line.channelSecret, rawBody, signature)
 		if (!isValid) {
 			return res.status(401).send('Unauthorized')
 		}
@@ -62,7 +72,6 @@ async function handleLineWebhook(req, res) {
 }
 
 // 處理 LINE Bot 事件
-// 這個函式將以事件類型分配至不同的處理函式中進行處理。
 async function handleEvent(event) {
 	// 確認事件為訊息事件
 	if (event.type === 'message' && event.message.type === 'text') {
@@ -73,12 +82,11 @@ async function handleEvent(event) {
 }
 
 // 處理用戶傳送的訊息事件
-// 這個函式將根據從用戶收到的訊息，利用 OpenAI 的模型生成一段文字描述，並回傳該描述給用戶。
 async function handleMessageEvent(event) {
 	const message = event.message
 	const replyToken = event.replyToken
 
-	// 輸入用戶訊息，獲得 OpenAI 返回的模型生成文字描述
+	// 輸入用戶訊息，獲取 OpenAI 返回的模型生成文字描述
 	const prompt = message.text
 	const generatedText = await generateText(prompt)
 
@@ -92,6 +100,12 @@ async function handleMessageEvent(event) {
 	await client.replyMessage(replyToken, response)
 }
 
-// 處理用戶回應的 postback 事件 // 在此處理用戶從 LINE Bot 收到的 postback 事件 async function handlePostbackEvent(event) { // 在此處理 postback 事件邏輯 }
+// 處理用戶回應的 postback 事件
+// 在此處理用戶從 LINE Bot 收到的 postback 事件
+async function handlePostbackEvent(event) {
+	// 在此處理 postback 事件邏輯
+}
 
-module.exports = { handleLineWebhook, handleMessageEvent }
+module.exports = {
+	handleLineWebhook,
+}
