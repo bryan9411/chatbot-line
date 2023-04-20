@@ -1,48 +1,78 @@
-const axios = require('axios')
-const config = require('../config')
+const { Configuration, OpenAIApi } = require('openai')
+const configs = require('../config')
+
+const apiKey = configs.openAi.OPENAI_API_KEY
+const configuration = new Configuration({ apiKey })
+
+const OpenAIGenerator = new OpenAIApi(configuration)
 
 /**
- * 使用 OpenAI API 生成文字描述。
- * @param {string} prompt - 要求生成文字描述的問題或命題。
- * @param {string} modelId - 要使用的模型 ID。
- * @param {string} modelScale - 模型的規模，可以是 small、medium、large 或 full。
- * @param {number} temperature - 模型生成文字的多樣性，範圍從 0（保守）到 1（瘋狂）之間。
- * @param {number} maxTokens - 要生成的最大 tokens 數。每個 token 大約是一個字或一個標點符號。
- * @param {boolean} disableCompletion - 是否禁用自動完成，當輸出達到最大 token 數或遇到停止標記時停止模型輸出。
- * @return {string} 生成的文字描述。
+ * 使用 OpenAI API 生成文本。
+ *
+ * @param {string} prompt - 要求文本生成的问题或命題。
+ * @param {string} model - 要使用的模型名稱。
+ * @param {number | undefined} temperature - 模型輸出文本的隨機多樣性，值範圍為 0（保守）到 1（瘋狂）之間。預設為 configs 配置中的值。
+ * @param {number | undefined} max_tokens - 要生成的最大 tokens 数量。每個 tokens 大約等於一個詞或一個標點符號。默認為 configs 配置中的值。
+ * @returns {Promise<string>} 生成的文本。
  */
 const generateText = async (
 	prompt,
-	modelId = config.openai.MODEL_ID,
-	modelScale = config.openai.MODEL_SCALE,
-	temperature = config.openai.MODEL_TEMPERATURE,
-	maxTokens = config.openai.MAX_TOKENS,
-	disableCompletion = config.openai.DISABLE_COMPLETION
+	model = configs.openAi.MODEL_ID,
+	temperature = configs.openAi.MODEL_TEMPERATURE,
+	max_tokens = configs.openAi.MAX_TOKENS
 ) => {
 	try {
-		const response = await axios.post(
-			'https://api.openai.com/v1/models/' + modelId + '/completions',
-			{
-				prompt: prompt,
-				max_tokens: maxTokens,
-				temperature: temperature,
-				model: modelScale,
-				disable_completion: disableCompletion,
-			},
-			{
-				headers: { Authorization: `Bearer ${config.openai.OPENAI_API_KEY}` },
-			}
-		)
-		const choices = response.data.choices
-		if (!choices || choices.length === 0) {
-			throw new Error('OpenAI API 返回了空數據。')
+		const messages = [{ role: 'user', content: prompt }]
+		const [choices] = (await OpenAIGenerator.createChatCompletion({ model, max_tokens, temperature, messages })).data
+			.choices
+		const message =
+			(choices && choices.message && choices.message.content && choices.message.content.trim()) ||
+			'抱歉，我沒有話可說了。'
+		let text = message.trim()
+
+		if (text) {
+			const paragraphs = text.split(/\n\s*\n/)
+			text = paragraphs
+				.map((paragraph) => {
+					if (!/^#{1,6}\s/.test(paragraph)) {
+						paragraph = `\n ${paragraph.replace(/\n+/g, ' ').trim()} \n`
+					}
+					paragraph = paragraph.replace(/\n- /g, '\n\n- ')
+
+					return paragraph.trim()
+				})
+				.join('\n')
+
+			text = text.replace(/(```\s*\n[\s\S]+?\n```)/g, '\n$1\n')
+			text = text.endsWith('```') ? `${text.slice(0, -3).trim()}\n\`\`\`\n` : `${text.trim()}\n`
+
+			text = text.replace(/(\n+)/g, '\n\n')
 		}
-		const text = choices[0].text.trim()
-		return text.replace(/\n/g, '<br>') // 處理換行問題
+
+		return text
 	} catch (error) {
-		console.error('在使用 OpenAI API 時發生錯誤：', error)
-		return '在生成文字描述時發生了錯誤。'
+		console.error(`OpenAI API 在生成文本時發生錯誤：${error.message}`)
+		return `在生成文本時發生錯誤: ${error.message}`
 	}
 }
 
-module.exports = { generateText }
+/**
+ * 將使用者輸入的文本轉換為 line bot 回覆的文本
+ * 如果输入的文本是 /code，则會 return 具有 Markdown 格式的字串。
+ *
+ * @param {string} input - 使用者輸入。
+ * @returns {Promise<string>} line bot 回覆。
+ */
+const generateResponse = async (input) => {
+	if (input.trim().toLowerCase() === '/code') {
+		return '\n以下是您的程式碼区块：\n\n```\n'
+	} else {
+		const response = await generateText(input)
+		return response
+			.replace(/```(\s*)\n/g, '\n```\n')
+			.replace(/```(\s*)/g, '')
+			.replace(/\n\n/g, '\n')
+	}
+}
+
+module.exports = { generateText, generateResponse }

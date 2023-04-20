@@ -1,3 +1,3 @@
-const config = require('./config')
+const configs = require('./configs')
 
-module.exports = config
+module.exports = configs
