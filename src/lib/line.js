@@ -6,7 +6,10 @@ const bodyParser = require('body-parser')
 
 const { CHANNEL_ACCESS_TOKEN, CHANNEL_SECRET } = configs.line
 
-const client = new line.Client({ CHANNEL_ACCESS_TOKEN, CHANNEL_SECRET })
+const client = new line.Client({
+	channelAccessToken: CHANNEL_ACCESS_TOKEN,
+	channelSecret: CHANNEL_SECRET,
+})
 
 const jsonParser = bodyParser.json({
 	verify(req, res, buf, encoding) {

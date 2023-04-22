@@ -44,7 +44,7 @@ const generateText = async (
 				.join('\n')
 
 			text = text.replace(/(```\s*\n[\s\S]+?\n```)/g, '\n$1\n')
-			text = text.endsWith('```') ? `${text.slice(0, -3).trim()}\n\`\`\`\n` : `${text.trim()}\n`
+			text = text.endsWith('```') ? `${text.slice(0, -3).trim()}\n\`\`\`\n` : `${text.trim()} `
 
 			text = text.replace(/(\n+)/g, '\n\n')
 		}
