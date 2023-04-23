@@ -1,0 +1,57 @@
+{
+	"type": "text",
+	"text": "您想要翻譯成哪個語言？",
+	"quickReply": {
+		"items": [
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "繁體中文",
+					"text": "我要翻譯成繁體中文"
+				}
+			},
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "简体中文",
+					"text": "我要翻译成简体中文"
+				}
+			},
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "英文",
+					"text": "我要翻譯成英文"
+				}
+			},
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "日本語",
+					"text": "我要翻譯成繁體日文"
+				}
+			},
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "한국어",
+					"text": "我要翻譯成韓文"
+				}
+			},
+			{
+				"type": "action",
+				"action": {
+					"type": "message",
+					"label": "退出翻譯模式",
+					"text": "退出翻譯模式"
+				},
+				"style": "primary"
+			}
+		]
+	}
+}
