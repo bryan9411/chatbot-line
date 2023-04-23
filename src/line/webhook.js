@@ -1,5 +1,5 @@
 const line = require('@line/bot-sdk')
-const { generateText } = require('../openai/Openai')
+const { generateText } = require('../openai/OpenAi')
 const configs = require('../config')
 
 // 處理 Line Bot 的 Webhook
