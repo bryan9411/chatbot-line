@@ -20,14 +20,6 @@ const configs = {
 	google: {
 		GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
 	},
-	command: {
-		CHECK_COMMAND: '/查看指令',
-		TRANSLATE_ASSISTANT: '/翻譯助理',
-		DRAW: '/幫畫',
-		WEATHER_INQUIRE: '/天氣查詢',
-		ACCOUNT_ASSISTANT: '/記帳助理',
-		EXIT: '/退出',
-	},
 }
 
 // 導出配置參數

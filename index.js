@@ -3,8 +3,8 @@ const express = require('express')
 const line = require('@line/bot-sdk')
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
-const handleLineWebhook = require('./src/handlers/handleLineWebhook')
-const { BotMessageManager } = require('./src/lib/utils')
+const handleLineWebhook = require('./src/line/webhook')
+const { BotMessageManager } = require('./src/utils/lineMessageManager')
 
 // 讀取環境變數
 dotenv.config()

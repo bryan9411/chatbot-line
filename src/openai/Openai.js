@@ -3,7 +3,6 @@ const configs = require('../config')
 
 const apiKey = configs.openAi.OPENAI_API_KEY
 const configuration = new Configuration({ apiKey })
-
 const OpenAIGenerator = new OpenAIApi(configuration)
 
 /**
